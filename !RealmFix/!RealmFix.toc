@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: !RealmFix
-## Notes: Temporary: when the client returns an empty realm name (build 71037), fills it in from the character's GUID server number. /realmfix shows status. Delete once Blizzard fixes it.
-## Version: 2.1
+## Notes: Temporary fix for WoW Forever build 71037 empty realm names: fills them in from the character GUID, learns realms from DataStore, never guesses. /realmfix for status, set and report.
+## Version: 2.2
 ## SavedVariables: RealmFixDB
 !RealmFix.lua

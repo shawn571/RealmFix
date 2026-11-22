@@ -9,21 +9,32 @@ Since client build **1.60.1 / 71037** (dated Nov 18 2026), `GetRealmName()` and 
 ## How it works
 
 - If the game returns a real realm name, !RealmFix passes it through unchanged and remembers it for that server.
-- If the game returns `""`, !RealmFix looks up the realm from the character's GUID. The first number in a GUID (`Player-<server>-<id>`) identifies the realm's server.
-- If it doesn't know that server number, it leaves the name blank rather than guessing, so no character is filed on the wrong realm.
+- If the game returns `""`, !RealmFix looks up the realm from the character's GUID. The first number in a GUID (`Player-<server>-<id>`) identifies the realm's server. It knows a server's name from, in order: a name you set with `/realmfix set`, a name it learned (from the game, or from DataStore's saved list of characters it saw before the bug), or its built-in table.
+- If it doesn't know that server number, it leaves the name blank rather than guessing, so no character is filed on the wrong realm, and tells you how to fix it.
 - It loads before DataStore because its folder name starts with `!`.
 
 ## Install
 
 1. Copy the `!RealmFix` folder into `World of Warcraft\_forever_\Interface\AddOns\`.
-2. **Edit `!RealmFix.lua`** and set the `SEED` table to your own realms: the server number (from your character's GUID) and the exact realm name. The included entry is the author's realm; replace or extend it. Set `DEFAULT` to your main realm, or to `""` to never guess.
-3. Restart the game completely, then make sure **!RealmFix** is ticked in the AddOns list at character select.
-
-To find a character's server number, log in on that character and type `/realmfix`.
+2. Restart the game completely, then make sure **!RealmFix** is ticked in the AddOns list at character select.
+3. Log in. If you use DataStore/Altoholic, !RealmFix learns your realms from it and may ask you to `/reload` once.
+4. If it says your realm isn't known, type `/realmfix set <exact realm name>` (as shown in the realm list), then `/reload`. Please also send a realm report (below) so it can be built in for everyone.
 
 ## Commands
 
-- `/realmfix`: shows what the game returns now, which realm name is being used, and why (`game`, `guid`, `default` or `unknown`). When the game returns realm names again, it tells you so.
+- `/realmfix`: shows what the game returns now, which realm name is being used, and why (`game`, `guid` or `unknown`). When the game returns realm names again, it tells you so.
+- `/realmfix set <realm name>`: saves the realm name for the character you're playing. Your choice always wins over learned names.
+- `/realmfix forget <server number>`: removes a saved name.
+- `/realmfix report`: opens a window with a report of the realms your copy knows, ready to copy (Ctrl+C).
+
+## Help build the realm table
+
+Add-ons can't send anything over the internet, so reports are copy and paste:
+
+1. Type `/realmfix report` and press Ctrl+C.
+2. Open a **Realm report** issue at [github.com/shawn571/RealmFix/issues](https://github.com/shawn571/RealmFix/issues/new/choose) and paste it.
+
+The report contains realm names and server numbers only: no character names, no GUIDs. Reports from players with characters created **before Nov 18 2026** on any realm are especially useful, because DataStore saved those realms' real names.
 
 ## Removing it
 

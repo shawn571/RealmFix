@@ -1,0 +1,42 @@
+name: Realm report
+description: Send the realm names !RealmFix knows, so they can be built in for everyone.
+title: "Realm report: "
+labels: ["realm-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! In the game, type `/realmfix report`, press Ctrl+C, and paste it below.
+        The report contains realm names and server numbers only: no character names, no GUIDs.
+  - type: textarea
+    id: report
+    attributes:
+      label: /realmfix report
+      description: Paste the whole report here.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: region
+    attributes:
+      label: Region
+      options:
+        - Americas & Oceania
+        - Europe
+        - Other / not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: au
+    attributes:
+      label: Do you play from Australia / New Zealand?
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: For example, which realm is which ruleset (PvE, PvP, RP, RP-PvP, Hardcore) if the name doesn't say.

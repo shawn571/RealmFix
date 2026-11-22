@@ -1,0 +1,23 @@
+name: Bug report
+description: Something isn't working with !RealmFix.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, what you saw. Include any Lua error text.
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: /realmfix output
+      description: Type `/realmfix` in the game and paste the line here.
+      render: text
+  - type: textarea
+    id: addons
+    attributes:
+      label: Other add-ons
+      description: Especially DataStore, Altoholic, ElvUI, and versions if you know them.
