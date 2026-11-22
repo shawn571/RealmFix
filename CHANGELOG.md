@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3 (2026-11-22)
+- A realm found in Altoholic's data is no longer used automatically: a popup shows the detected name, filled in, and asks you to confirm (Confirm and reload / Not now). `/realmfix confirm` does the same.
+- Warnings that the name must exactly match what Altoholic shows, or DataStore/Altoholic will create a separate realm with duplicate characters.
+- `/realmfix set` is now marked advanced: a name Altoholic doesn't know needs `/realmfix set confirm`.
+- Names detected by 2.2 without asking are moved back to "detected, not confirmed".
+- Realm report form covers every region (Americas & Oceania, Europe, Korea, Taiwan, China).
+
 ## 2.2 (2026-11-22)
 - Never guesses: `DEFAULT` is now empty, so an unknown realm stays blank instead of being filed under another realm.
 - Learns realm names from DataStore's saved character list (characters it saw before the bug). On the first login after installing, it asks for one `/reload` to apply what it learned.

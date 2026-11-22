@@ -1,12 +1,13 @@
 name: Realm report
-description: Send the realm names !RealmFix knows, so they can be built in for everyone.
+description: Send the realm names !RealmFix knows, from any region, so they can be built in for everyone.
 title: "Realm report: "
 labels: ["realm-report"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks! In the game, type `/realmfix report`, press Ctrl+C, and paste it below.
+        Thanks! Reports from **every region** are welcome.
+        In the game, type `/realmfix report`, press Ctrl+C, and paste it below.
         The report contains realm names and server numbers only: no character names, no GUIDs.
   - type: textarea
     id: report
@@ -19,24 +20,35 @@ body:
   - type: dropdown
     id: region
     attributes:
-      label: Region
+      label: Region (the one you picked in the Battle.net launcher)
       options:
         - Americas & Oceania
         - Europe
-        - Other / not sure
+        - Korea
+        - Taiwan
+        - China
+        - Not sure
     validations:
       required: true
-  - type: dropdown
-    id: au
+  - type: input
+    id: country
     attributes:
-      label: Do you play from Australia / New Zealand?
+      label: Country you play from (optional)
+      description: Helps us understand players who are placed on another region's layers, for example Oceanic players on US layers.
+  - type: dropdown
+    id: layers
+    attributes:
+      label: Are you ever placed on layers or shards outside your home area?
       options:
         - "No"
         - "Yes"
-    validations:
-      required: true
+        - Not sure
+  - type: textarea
+    id: rulesets
+    attributes:
+      label: Rulesets
+      description: For each realm in your report whose name doesn't say it, which ruleset is it (Normal/PvE, PvP, RP, RP-PvP, Hardcore)?
   - type: textarea
     id: notes
     attributes:
       label: Anything else?
-      description: For example, which realm is which ruleset (PvE, PvP, RP, RP-PvP, Hardcore) if the name doesn't say.
