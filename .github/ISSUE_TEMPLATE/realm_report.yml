@@ -9,6 +9,7 @@ body:
         Thanks! Reports from **every region** are welcome.
         In the game, type `/realmfix report`, press Ctrl+C, and paste it below.
         The report contains realm names and server numbers only: no character names, no GUIDs.
+        If your report has a **MISMATCH** line, please say which name is right in "Anything else?".
   - type: textarea
     id: report
     attributes:

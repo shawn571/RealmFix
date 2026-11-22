@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4 (2026-11-22)
+- Asks at most once per realm: after you confirm a realm's name, no other character on that realm is asked.
+- No popup at all for a realm in the built-in table when its name matches what Altoholic has.
+- If the built-in name doesn't match Altoholic's, a popup offers Altoholic's name (filled in), the chat asks you to report it, and `/realmfix report` shows a MISMATCH line.
+
 ## 2.3 (2026-11-22)
 - A realm found in Altoholic's data is no longer used automatically: a popup shows the detected name, filled in, and asks you to confirm (Confirm and reload / Not now). `/realmfix confirm` does the same.
 - Warnings that the name must exactly match what Altoholic shows, or DataStore/Altoholic will create a separate realm with duplicate characters.

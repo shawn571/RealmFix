@@ -1,4 +1,4 @@
--- !RealmFix 2.3: temporary workaround for WoW Forever client build 71037 (Nov 18 2026),
+-- !RealmFix 2.4: temporary workaround for WoW Forever client build 71037 (Nov 18 2026),
 -- where GetRealmName() and GetNormalizedRealmName() return "".
 --
 -- When the game gives a real name, it is passed through unchanged and remembered for that
@@ -16,7 +16,7 @@
 -- /realmfix set <realm name>   advanced: name this character's realm yourself
 -- /realmfix report   copyable report of known realms, to post as a GitHub "Realm report"
 
-local VERSION = "2.3"
+local VERSION = "2.4"
 local ISSUES_URL = "github.com/shawn571/RealmFix/issues"
 
 -- Server number -> realm name, from community realm reports. Add more via GitHub issues.
@@ -50,6 +50,7 @@ local function db()
   d.map = d.map or {}          -- server -> realm name in use
   d.src = d.src or {}          -- server -> "game" | "confirmed" | "player"
   d.pending = d.pending or {}  -- server -> name detected from Altoholic, not yet confirmed
+  d.conflict = d.conflict or {} -- server -> Altoholic's name, when it differs from the built-in one
   d.log = d.log or {}
   for sid, s in pairs(d.src) do -- 2.2 used detected names without asking: ask now instead
     if s == "datastore" then
@@ -94,6 +95,7 @@ local function save(sid, name, src)
   if d.map[sid] and d.map[sid] ~= name then note("changed(" .. tostring(d.map[sid]) .. ")", sid, name) end
   d.map[sid], d.src[sid] = name, src
   d.pending[sid] = nil
+  d.conflict[sid] = nil
   return true
 end
 
@@ -158,9 +160,14 @@ local function detectFromDataStore()
     local realm = type(key) == "string" and key:match("^[^%.]*%.(.*)%.[^%.]*$")
     local sid = serverOf(guids[i])
     if realm and realm ~= "" then knownNames[realm] = true end
-    if realm and realm ~= "" and sid and not d.map[sid] and SEED[sid] ~= realm and d.pending[sid] ~= realm then
-      d.pending[sid] = realm
-      found = found + 1
+    if realm and realm ~= "" and sid and not d.map[sid] then
+      if SEED[sid] and SEED[sid] ~= realm then
+        -- Built-in name disagrees with what Altoholic has: ask, and ask for an issue.
+        if d.conflict[sid] ~= realm then d.conflict[sid] = realm; found = found + 1 end
+      elseif not SEED[sid] and d.pending[sid] ~= realm then
+        d.pending[sid] = realm
+        found = found + 1
+      end
     end
   end
   return found
@@ -189,6 +196,9 @@ local function reportText()
   }
   for _, e in ipairs(realmList()) do
     lines[#lines + 1] = "  " .. e[1] .. " = " .. e[2] .. " [" .. e[3] .. "]"
+  end
+  for sid, name in pairs(db().conflict) do
+    lines[#lines + 1] = "  MISMATCH " .. sid .. ": built-in \"" .. tostring(SEED[sid]) .. "\" but Altoholic has \"" .. name .. "\""
   end
   if unknownServer and not lookup(unknownServer) and not db().pending[unknownServer] then
     lines[#lines + 1] = "  " .. unknownServer .. " = (unknown: please add its realm name and ruleset)"
@@ -251,7 +261,7 @@ end
 local function acceptDetected(sid, detected, typed, reload)
   typed = trim(typed)
   if typed == "" then typed = detected end
-  if typed ~= detected and not knownNames[typed] then
+  if typed ~= detected and not knownNames[typed] and typed ~= SEED[sid] then
     msg("not saved: \"" .. typed .. "\" isn't the name Altoholic has (\"" .. detected .. "\"). " ..
         MISMATCH_WARNING .. " If you're sure, use /realmfix set " .. typed)
     return false
@@ -266,12 +276,15 @@ local function getEditBox(popup)
   return popup.editBox or popup.EditBox or (popup.GetEditBox and popup:GetEditBox())
 end
 
-local function askConfirm(sid, detected)
+local function askConfirm(sid, detected, builtin)
+  local intro = builtin and
+    ("The built-in name for this realm (\"" .. builtin .. "\") doesn't match the name Altoholic has. " ..
+     "Please report this at " .. ISSUES_URL .. " (/realmfix report).\n\nAltoholic has: |cffffd100%s|r") or
+    "The game isn't giving this character's realm name.\n\nDetected from Altoholic: |cffffd100%s|r"
   local ok = pcall(function()
     StaticPopupDialogs["REALMFIX_CONFIRM"] = {
-      text = "|cff33ff99!RealmFix|r\nThe game isn't giving this character's realm name.\n\n" ..
-             "Detected from Altoholic: |cffffd100%s|r\n\nCheck this is your realm. " ..
-             MISMATCH_WARNING .. "\n\nConfirm and reload?",
+      text = "|cff33ff99!RealmFix|r\n" .. intro .. "\n\nCheck this is your realm. " ..
+             MISMATCH_WARNING .. "\n\nUse this name and reload?",
       button1 = "Confirm and reload",
       button2 = "Not now",
       hasEditBox = true,
@@ -324,7 +337,7 @@ SlashCmdList.REALMFIX = function(input)
   if cmd == "" or cmd == "status" then
     status()
   elseif cmd == "confirm" then
-    local p = sid and db().pending[sid]
+    local p = sid and (db().conflict[sid] or db().pending[sid])
     if p then acceptDetected(sid, p, p, false)
     else msg("nothing detected to confirm for this character. See /realmfix.") end
   elseif cmd == "set" then
@@ -366,17 +379,29 @@ local function afterLogin()
   local game = origGet()
   if game ~= nil and game ~= "" then return end
   local sid = myServer()
-  if not sid or lookup(sid) then
-    if sid and resolvedHow ~= "guid" then msg("realm name known now (" .. lookup(sid) .. "). Type /reload once to apply it.") end
+  if not sid then return end
+  local d = db()
+  -- Confirmed, set or learned from the game: never ask again for this realm.
+  if d.map[sid] then
+    if resolvedHow ~= "guid" then msg("realm name known now (" .. d.map[sid] .. "). Type /reload once to apply it.") end
     return
   end
-  local p = db().pending[sid]
-  if p then
-    askConfirm(sid, p)
-  else
-    msg("the game isn't giving a realm name, and this realm (server " .. sid .. ") isn't known yet. " ..
-        "Please post /realmfix report at " .. ISSUES_URL .. " so it can be added.")
+  -- Built-in name disagrees with Altoholic: ask (Altoholic's name filled in) and ask for an issue.
+  if d.conflict[sid] then
+    msg("|cffff5555mismatch:|r built-in realm name \"" .. tostring(SEED[sid]) .. "\" differs from Altoholic's \"" ..
+        d.conflict[sid] .. "\". Please report it: /realmfix report, then " .. ISSUES_URL)
+    askConfirm(sid, d.conflict[sid], SEED[sid])
+    return
   end
+  -- Built-in name that matches Altoholic (or Altoholic has nothing to compare): nothing to ask.
+  if SEED[sid] then return end
+  -- Unknown realm that Altoholic knows: ask once for this realm.
+  if d.pending[sid] then
+    askConfirm(sid, d.pending[sid])
+    return
+  end
+  msg("the game isn't giving a realm name, and this realm (server " .. sid .. ") isn't known yet. " ..
+      "Please post /realmfix report at " .. ISSUES_URL .. " so it can be added.")
 end
 
 local ev = CreateFrame("Frame")

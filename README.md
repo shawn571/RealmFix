@@ -10,7 +10,8 @@ Since client build **1.60.1 / 71037** (dated Nov 18 2026), `GetRealmName()` and 
 
 - If the game returns a real realm name, !RealmFix passes it through unchanged and remembers it for that server.
 - If the game returns `""`, !RealmFix looks up the realm from the character's GUID. The first number in a GUID (`Player-<server>-<id>`) identifies the realm's server. It knows a server's name from, in order: a name the game gave earlier, a name you confirmed or set, or its built-in table.
-- If it finds the realm in Altoholic's data (DataStore's saved list of characters from before the bug), it shows a popup with that name filled in and asks you to confirm it. Nothing from Altoholic is used until you confirm.
+- If your realm isn't in the built-in table but Altoholic's data (DataStore's saved list of characters from before the bug) has it, it shows a popup with that name filled in and asks you to confirm it, **once per realm**. Nothing from Altoholic is used until you confirm, and other characters on the same realm aren't asked again.
+- If your realm is in the built-in table and matches Altoholic, there's no popup at all. If the built-in name doesn't match Altoholic's, it asks you to confirm Altoholic's name and to report the mismatch.
 - If it doesn't know that server number, it leaves the name blank rather than guessing, so no character is filed on the wrong realm.
 - It loads before DataStore because its folder name starts with `!`.
 
